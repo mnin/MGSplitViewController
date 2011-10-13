@@ -236,6 +236,11 @@
 	// Little bit ugly looking, but it'll still work even if they change the status bar height in future.
 	float statusBarHeight = MAX((fullScreenRect.size.width - appFrame.size.width), (fullScreenRect.size.height - appFrame.size.height));
 	
+	float navigationBarHeight = 0;
+	if ((self.navigationController)&&(!self.navigationController.navigationBarHidden)) {
+		navigationBarHeight = self.navigationController.navigationBar.frame.size.height;
+	}
+	
 	// Initially assume portrait orientation.
 	float width = fullScreenRect.size.width;
 	float height = fullScreenRect.size.height;
@@ -252,6 +257,7 @@
 	// Account for the tab bar if we're in a tab controller
 	if (self.tabBarController.tabBar) {
 		height -= self.tabBarController.tabBar.frame.size.height;
+		height -= navigationBarHeight;
 	}
 
 	return CGSizeMake(width, height);
