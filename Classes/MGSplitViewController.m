@@ -243,6 +243,11 @@
 		navigationBarHeight = self.navigationController.navigationBar.frame.size.height;
 	}
 	
+	CGFloat tabBarHeight = 0;
+	if (self.tabBarController) {
+		tabBarHeight = self.tabBarController.tabBar.frame.size.height;
+	}
+	
 	// Initially assume portrait orientation.
 	float width = fullScreenRect.size.width;
 	float height = fullScreenRect.size.height;
@@ -255,11 +260,12 @@
 	
 	// Account for status bar, which always subtracts from the height (since it's always at the top of the screen).
 	height -= statusBarHeight;
+	height -= navigationBarHeight;
+	height -= tabBarHeight;
 	
 	// Account for the tab bar if we're in a tab controller
 	if (self.tabBarController.tabBar) {
 		height -= self.tabBarController.tabBar.frame.size.height;
-		height -= navigationBarHeight;
 	}
 
 	return CGSizeMake(width, height);
@@ -579,7 +585,11 @@
 		[self.masterViewController viewDidDisappear:NO];
 		
 		// Create and configure _barButtonItem.
-		_barButtonItem = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(@"Master", nil) 
+		NSString *barButtonItemTitle = self.masterViewController.title;
+		if (barButtonItemTitle == nil) {
+			barButtonItemTitle = @"Master";
+		}
+		_barButtonItem = [[UIBarButtonItem alloc] initWithTitle:NSLocalizedString(barButtonItemTitle, nil) 
 														  style:UIBarButtonItemStyleBordered 
 														 target:self 
 														 action:(self.togglesMasterPopover ? @selector(toggleMasterPopover:) : @selector(showMasterPopover:))];
@@ -594,7 +604,9 @@
 		
 	} else if (!inPopover && _hiddenPopoverController && _barButtonItem) {
 		// I know this looks strange, but it fixes a bizarre issue with UIPopoverController leaving masterViewController's views in disarray.
-		[_hiddenPopoverController presentPopoverFromRect:CGRectZero inView:self.view permittedArrowDirections:UIPopoverArrowDirectionAny animated:NO];
+		if (self.view.window != nil) {
+			[_hiddenPopoverController presentPopoverFromRect:CGRectZero inView:self.view permittedArrowDirections:UIPopoverArrowDirectionAny animated:NO];
+		}
 		
 		// Remove master from popover and destroy popover, if it exists.
 		[_hiddenPopoverController dismissPopoverAnimated:NO];
